@@ -153,6 +153,13 @@ public class SpreadsheetParser {
             OWLNamedIndividual associationIndividual = factory.getOWLNamedIndividual(assocIRI);
             OWLNamedIndividual provenanceIndividual = factory.getOWLNamedIndividual(provIRI);
 
+            //assert types
+            OWLClassAssertionAxiom assocTypeAssertion = factory.getOWLClassAssertionAxiom(association, associationIndividual);
+            manager.addAxiom(ontology, assocTypeAssertion);
+            OWLClassAssertionAxiom provTypeAssertion = factory.getOWLClassAssertionAxiom(provenance, provenanceIndividual);
+            manager.addAxiom(ontology, provTypeAssertion);
+
+
             //add subject and object to association
             OWLObjectPropertyAssertionAxiom subjectAssertion = factory.
                     getOWLObjectPropertyAssertionAxiom(hasSubject, associationIndividual, subjectIndividual);
@@ -165,10 +172,7 @@ public class SpreadsheetParser {
             manager.addAxiom(ontology, provAssertion);
             OWLDataPropertyAssertionAxiom pubmedAssertion = factory.
                     getOWLDataPropertyAssertionAxiom(hasPubmedID, provenanceIndividual, pmid);
-            manager.addAxiom(ontology, provAssertion);
-
-            //manager.saveOntology(ontology);
-
+            manager.addAxiom(ontology, pubmedAssertion);
 
             System.out.println("Axiom added");
 
