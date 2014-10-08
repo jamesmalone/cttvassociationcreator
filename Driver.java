@@ -11,7 +11,7 @@ public class Driver {
 
 
         SpreadsheetParser parser = new SpreadsheetParser();
-
+        //input file, output file
         parser.parseFile("/Users/malone/bone_fracture.txt", "file:/Users/malone/cttvassociationcreator/assocs.owl");
 
 

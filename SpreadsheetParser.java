@@ -1,14 +1,13 @@
 package obanminter;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.io.StreamDocumentTarget;
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileReader;
-import java.net.URI;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Scanner;
 
 /**
@@ -27,9 +26,10 @@ public class SpreadsheetParser {
      */
     public void parseFile(String filelocation, String outputpath) {
 
-        int subjectLocation = -1; //location of subject ontology uri
-        int objectLocation = -1; //location of object ontology uri
-        int pmidLocation = 0; //location of pubmed id column
+        int subjectLocation = -1; //location of subject ontology uri (required)
+        int objectLocation = -1; //location of object ontology uri (required)
+        int pmidLocation = -1; //location of pubmed id column (optional)
+        int dateLocation = -1; //location of date when association was made (optional)
 
 
         try {
@@ -42,7 +42,7 @@ public class SpreadsheetParser {
             for(int i=0; i<splitFirstLine.length; i++) {
 
                 System.out.println("Testing element "+ i + " " + splitFirstLine[i]);
-                if (splitFirstLine[i].toString().toLowerCase().matches("subject")) {
+                if (splitFirstLine[i].toString().toLowerCase().matches("subject_uri")) {
                     subjectLocation = i;
                     System.out.println("Found subject element  "+ i);
 
@@ -56,12 +56,16 @@ public class SpreadsheetParser {
                     System.out.println("Found pubmed id element  "+ i);
                     pmidLocation = i;
                 }
+                else if (splitFirstLine[i].toString().toLowerCase().matches("date")){
+                    System.out.println("Found date id element  "+ i);
+                    dateLocation = i;
+                }
             }
 
             //if we don't have a subject and object location flag error
             if(subjectLocation == -1 || objectLocation == -1){
 
-                System.out.println("Can not process file: No subject and/or object location header in file.");
+                System.out.println("Can not process file: No subject_uri and/or object location header in file.");
             }
             //otherwise continue to read file
             else {
@@ -69,7 +73,7 @@ public class SpreadsheetParser {
                 //prepare ontology to save RDF into
                 OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
                 IRI ontologyIRI = IRI.create("http://cttv.org/associations/");
-                IRI documentIRI = IRI.create("file:/Users/malone/cttvassociationcreator/assocs.owl");
+                IRI documentIRI = IRI.create(outputpath);
                 SimpleIRIMapper mapper = new SimpleIRIMapper(ontologyIRI, documentIRI);
                 manager.addIRIMapper(mapper);
                 OWLOntology ontology = manager.createOntology(ontologyIRI);
@@ -79,19 +83,32 @@ public class SpreadsheetParser {
                 while (sc.hasNextLine()) {
                     String line = (sc.nextLine());
                     String[] split = line.split("\t");
+                    String pmid = null;
+                    String assocDate = null;
 
                     String subject = split[subjectLocation];
-                    String pmid = split[pmidLocation];
+                    if(pmidLocation != -1){
+                        pmid = split[pmidLocation];
+                    }
+                    if(dateLocation != -1){
+                        assocDate = split[dateLocation];
+                    }
 
                     String object = new StringBuilder().append("http://purl.obolibrary.org/obo/").append(split[objectLocation]).toString();
 
-                    this.createOBANAssociation(subject, object, pmid, manager, ontology);
+                    // Get hold of a data factory from the manager
+                    OWLDataFactory factory = manager.getOWLDataFactory();
+
+                    //mint subject and object assertions
+                    this.createOBANAssociation(manager, ontology, factory, subject, object, pmid, assocDate);
+
 
                 }
 
 
                 //save ontology
                 manager.saveOntology(ontology);
+                System.out.println("ontology saved");
 
             }
         }
@@ -103,86 +120,107 @@ public class SpreadsheetParser {
 
 
     /**
-     * mint an OBAN style association in RDF
-
-     * @param subject String version of IRI for subject
-     * @param object String version of IRI for object
-     * @param pmid String of pubmed ID
+     * create a single association between a subject and object with evidence and any provenance attached to it
+     * @param manager
+     * @param ontology
+     * @param factory
+     * @param subject string containing uri
+     * @param object string containing uri
+     * @param pmid numerical part of pubmed ID only
+     * @param assocDate date association was made originally (not date this computational one was formed)
      */
-    public void createOBANAssociation(String subject, String object, String pmid, OWLOntologyManager manager, OWLOntology ontology){
+    private void createOBANAssociation(OWLOntologyManager manager, OWLOntology ontology, OWLDataFactory factory, String subject, String object, String pmid, String assocDate){
 
-        try {
 
-            /*
-            OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
-            IRI ontologyIRI = IRI.create("http://cttv.org/associations/");
-            IRI documentIRI = IRI.create("file:/Users/malone/cttvassociationcreator/assocs.owl");
-            SimpleIRIMapper mapper = new SimpleIRIMapper(ontologyIRI, documentIRI);
-            manager.addIRIMapper(mapper);
-            OWLOntology ontology = manager.createOntology(ontologyIRI);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
+        //get current date time with Date()
+        String date = dateFormat.format(new Date());
 
-            */
+        //create IRIs for both subject and object
+        IRI subjectIRI = IRI.create(subject);
+        IRI objectIRI = IRI.create(object);
+        //generate hash for association & provenance URI fragment
+        String assocHash = HashingIdGenerator.generateHashEncodedID(Math.random()+subject+object);
+        String provHash = HashingIdGenerator.generateHashEncodedID(Math.random()+subject+object);
+        //create IRI for association instance
+        String assocString = new StringBuilder().append("http://purl.obolibrary.org/obo/").append(assocHash).toString();
+        IRI assocIRI = IRI.create(assocString);
+        String provString = new StringBuilder().append("http://purl.obolibrary.org/obo/").append(provHash).toString();
+        IRI provIRI = IRI.create(provString);
 
-            // Get hold of a data factory from the manager
-            OWLDataFactory factory = manager.getOWLDataFactory();
+        //mint classes
+        OWLClass association = factory.getOWLClass(IRI.create("http://purl.org/oban/association"));
+        OWLClass provenance = factory.getOWLClass(IRI.create("http://purl.org/oban/provenance"));
 
-            IRI subjectIRI = IRI.create(subject);
-            IRI objectIRI = IRI.create(object);
-            //generate hash for association & provenance URI fragment
-            String assocHash = HashingIdGenerator.generateHashEncodedID(Math.random()+subject+object);
-            String provHash = HashingIdGenerator.generateHashEncodedID(Math.random()+subject+object);
-            //create IRI for association instance
-            String assocString = new StringBuilder().append("http://purl.obolibrary.org/obo/").append(assocHash).toString();
-            IRI assocIRI = IRI.create(assocString);
-            String provString = new StringBuilder().append("http://purl.obolibrary.org/obo/").append(provHash).toString();
-            IRI provIRI = IRI.create(provString);
+        //mint properties used in minting associations
+        //mint object properties
+        OWLObjectProperty hasSubject = factory.getOWLObjectProperty(IRI.create("http://purl.org/oban/association_has_subject"));
+        OWLObjectProperty hasObject = factory.getOWLObjectProperty(IRI.create("http://purl.org/oban/association_has_object"));
+        OWLObjectProperty hasProvenance = factory.getOWLObjectProperty(IRI.create("http://purl.org/oban/has_provenance"));
+        //mint datatype properties
+        OWLDataProperty hasAssocCreatedDate = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/date_association_created"));
 
-            //mint classes
-            OWLClass association = factory.getOWLClass(IRI.create("http://purl.org/oban/association"));
-            OWLClass provenance = factory.getOWLClass(IRI.create("http://purl.org/oban/provenance"));
+        //create individuals for subject and object and an association instance
+        OWLNamedIndividual subjectIndividual = factory.getOWLNamedIndividual(subjectIRI);
+        OWLNamedIndividual objectIndividual = factory.getOWLNamedIndividual(objectIRI);
+        OWLNamedIndividual associationIndividual = factory.getOWLNamedIndividual(assocIRI);
+        OWLNamedIndividual provenanceIndividual = factory.getOWLNamedIndividual(provIRI);
 
-            //mint properties
-            OWLObjectProperty hasSubject = factory.getOWLObjectProperty(IRI.create("http://purl.org/oban/association_has_subject"));
-            OWLObjectProperty hasObject = factory.getOWLObjectProperty(IRI.create("http://purl.org/oban/association_has_object"));
-            OWLObjectProperty hasProvenance = factory.getOWLObjectProperty(IRI.create("http://purl.org/oban/has_provenance"));
+        //assert types
+        OWLClassAssertionAxiom assocTypeAssertion = factory.getOWLClassAssertionAxiom(association, associationIndividual);
+        manager.addAxiom(ontology, assocTypeAssertion);
+        OWLClassAssertionAxiom provTypeAssertion = factory.getOWLClassAssertionAxiom(provenance, provenanceIndividual);
+        manager.addAxiom(ontology, provTypeAssertion);
+
+        //add subject and object to association
+        OWLObjectPropertyAssertionAxiom subjectAssertion = factory.
+                getOWLObjectPropertyAssertionAxiom(hasSubject, associationIndividual, subjectIndividual);
+        manager.addAxiom(ontology, subjectAssertion);
+        OWLObjectPropertyAssertionAxiom objectAssertion = factory.
+                getOWLObjectPropertyAssertionAxiom(hasObject, associationIndividual, objectIndividual);
+        manager.addAxiom(ontology, objectAssertion);
+        OWLObjectPropertyAssertionAxiom provAssertion = factory.
+                getOWLObjectPropertyAssertionAxiom(hasProvenance, associationIndividual, provenanceIndividual);
+        manager.addAxiom(ontology, provAssertion);
+        OWLDataPropertyAssertionAxiom dateAssertion = factory.
+                getOWLDataPropertyAssertionAxiom(hasAssocCreatedDate, provenanceIndividual, date);
+        manager.addAxiom(ontology, dateAssertion);
+
+
+        //add evidence assertion
+        OWLObjectProperty hasEvidence = factory.getOWLObjectProperty(IRI.create("http://purl.obolibrary.org/obo/RO_0002558"));
+        //eco class for: inference from background scientific knowledge used in manual assertion
+        OWLNamedIndividual evidenceIndividual = factory.getOWLNamedIndividual(IRI.create("http://purl.obolibrary.org/obo/ECO_0000306"));
+        OWLObjectPropertyAssertionAxiom evidenceAssertion = factory.
+                getOWLObjectPropertyAssertionAxiom(hasEvidence, provenanceIndividual, evidenceIndividual);
+        manager.addAxiom(ontology, evidenceAssertion);
+
+
+        if(pmid != null){
+            //mint datatype properties
             OWLDataProperty hasPubmedID = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/has_pubmed_id"));
 
-            //create individuals for subject and object and an association instance
-            OWLNamedIndividual subjectIndividual = factory.getOWLNamedIndividual(subjectIRI);
-            OWLNamedIndividual objectIndividual = factory.getOWLNamedIndividual(objectIRI);
-            OWLNamedIndividual associationIndividual = factory.getOWLNamedIndividual(assocIRI);
-            OWLNamedIndividual provenanceIndividual = factory.getOWLNamedIndividual(provIRI);
-
-            //assert types
-            OWLClassAssertionAxiom assocTypeAssertion = factory.getOWLClassAssertionAxiom(association, associationIndividual);
-            manager.addAxiom(ontology, assocTypeAssertion);
-            OWLClassAssertionAxiom provTypeAssertion = factory.getOWLClassAssertionAxiom(provenance, provenanceIndividual);
-            manager.addAxiom(ontology, provTypeAssertion);
-
-
-            //add subject and object to association
-            OWLObjectPropertyAssertionAxiom subjectAssertion = factory.
-                    getOWLObjectPropertyAssertionAxiom(hasSubject, associationIndividual, subjectIndividual);
-            manager.addAxiom(ontology, subjectAssertion);
-            OWLObjectPropertyAssertionAxiom objectAssertion = factory.
-                    getOWLObjectPropertyAssertionAxiom(hasObject, associationIndividual, objectIndividual);
-            manager.addAxiom(ontology, objectAssertion);
-            OWLObjectPropertyAssertionAxiom provAssertion = factory.
-                    getOWLObjectPropertyAssertionAxiom(hasProvenance, associationIndividual, provenanceIndividual);
-            manager.addAxiom(ontology, provAssertion);
+            //make assertion
             OWLDataPropertyAssertionAxiom pubmedAssertion = factory.
                     getOWLDataPropertyAssertionAxiom(hasPubmedID, provenanceIndividual, pmid);
             manager.addAxiom(ontology, pubmedAssertion);
-
-            System.out.println("Axiom added");
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
 
-    }
 
+        /*
+        if(assocDate != null){
+            System.out.println("go assocdate");
+            //mint datatype properties
+            OWLDataProperty hasOriginCreatedDate = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/date_association_created"));
+
+
+        }
+        */
+
+        System.out.println("Axiom added");
+
+    }
 
 
 
