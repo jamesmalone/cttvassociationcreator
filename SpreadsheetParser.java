@@ -41,16 +41,19 @@ public class SpreadsheetParser {
             //first row: identify columns we need for rdf from column headers in first line
             for(int i=0; i<splitFirstLine.length; i++) {
 
+                //subject uri
                 System.out.println("Testing element "+ i + " " + splitFirstLine[i]);
                 if (splitFirstLine[i].toString().toLowerCase().matches("subject_uri")) {
                     subjectLocation = i;
                     System.out.println("Found subject element  "+ i);
 
+                //object uri
                 }
-                else if (splitFirstLine[i].toString().toLowerCase().matches("ontology-id")) {
+                else if (splitFirstLine[i].toString().toLowerCase().matches("ontology_uri")) {
                     objectLocation = i;
                     System.out.println("Found ontology-id element  "+ i);
 
+                //pubmed id
                 }
                 else if (splitFirstLine[i].toString().toLowerCase().matches("pmid")){
                     System.out.println("Found pubmed id element  "+ i);
@@ -94,7 +97,7 @@ public class SpreadsheetParser {
                         assocDate = split[dateLocation];
                     }
 
-                    String object = new StringBuilder().append("http://purl.obolibrary.org/obo/").append(split[objectLocation]).toString();
+                    String object = new StringBuilder().append(split[objectLocation]).toString();
 
                     // Get hold of a data factory from the manager
                     OWLDataFactory factory = manager.getOWLDataFactory();
