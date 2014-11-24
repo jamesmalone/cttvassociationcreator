@@ -30,6 +30,8 @@ public class SpreadsheetParser {
         int objectLocation = -1; //location of object ontology uri (required)
         int pmidLocation = -1; //location of pubmed id column (optional)
         int dateLocation = -1; //location of date when association was made (optional)
+        int sourceDBLocation = -1; //location of source of association (optional)
+
 
 
         try {
@@ -49,9 +51,9 @@ public class SpreadsheetParser {
 
                 //object uri
                 }
-                else if (splitFirstLine[i].toString().toLowerCase().matches("ontology_uri")) {
+                else if (splitFirstLine[i].toString().toLowerCase().matches("object_uri")) {
                     objectLocation = i;
-                    System.out.println("Found ontology-id element  "+ i);
+                    System.out.println("Found object element  "+ i);
 
                 //pubmed id
                 }
@@ -59,10 +61,17 @@ public class SpreadsheetParser {
                     System.out.println("Found pubmed id element  "+ i);
                     pmidLocation = i;
                 }
+                //date id
                 else if (splitFirstLine[i].toString().toLowerCase().matches("date")){
                     System.out.println("Found date id element  "+ i);
                     dateLocation = i;
                 }
+                //database source id
+                else if (splitFirstLine[i].toString().toLowerCase().matches("sourcedb")){
+                    System.out.println("Found source db id element  "+ i);
+                    sourceDBLocation = i;
+                }
+
             }
 
             //if we don't have a subject and object location flag error
@@ -81,30 +90,55 @@ public class SpreadsheetParser {
                 manager.addIRIMapper(mapper);
                 OWLOntology ontology = manager.createOntology(ontologyIRI);
 
-
-
+                int i = 0;
+                //parse the line to find all input for each association
                 while (sc.hasNextLine()) {
-                    String line = (sc.nextLine());
-                    String[] split = line.split("\t");
-                    String pmid = null;
-                    String assocDate = null;
 
-                    String subject = split[subjectLocation];
-                    if(pmidLocation != -1){
-                        pmid = split[pmidLocation];
+
+                    try {
+                        i++;
+                        System.out.println("Line:" + i);
+
+                        String line = (sc.nextLine());
+                        String[] split = line.split("\t");
+                        String pmid = null;
+                        String assocDate = null;
+                        String sourceDB = null;
+
+                        //get subject and object
+                        String subject = split[subjectLocation];
+                        System.out.println("Subject: " + subject);
+                        String object = split[objectLocation];
+                        System.out.println("Object: " + object);
+
+                        if (subject == "" || object == "") {
+
+                            System.out.println("Ingoring line " + i + " as no subject & object");
+                        } else {
+                            System.out.println("Adding axiom, row:  " + i);
+
+                            if (pmidLocation != -1) {
+                                pmid = split[pmidLocation];
+                            }
+                            if (dateLocation != -1) {
+                                assocDate = split[dateLocation];
+                            }
+                            if (sourceDBLocation != -1) {
+                                sourceDB = split[sourceDBLocation];
+                            }
+
+                            //String object = new StringBuilder().append(split[objectLocation]).toString();
+
+                            // Get hold of a data factory from the manager
+                            OWLDataFactory factory = manager.getOWLDataFactory();
+
+                            //mint subject and object assertions
+                            this.createOBANAssociation(manager, ontology, factory, subject, object, pmid, assocDate, sourceDB);
+                        }
                     }
-                    if(dateLocation != -1){
-                        assocDate = split[dateLocation];
+                    catch(Exception e){
+                        System.out.println("A error has occurred reading a line from file " + e.toString());
                     }
-
-                    String object = new StringBuilder().append(split[objectLocation]).toString();
-
-                    // Get hold of a data factory from the manager
-                    OWLDataFactory factory = manager.getOWLDataFactory();
-
-                    //mint subject and object assertions
-                    this.createOBANAssociation(manager, ontology, factory, subject, object, pmid, assocDate);
-
 
                 }
 
@@ -116,8 +150,7 @@ public class SpreadsheetParser {
             }
         }
         catch(Exception e){
-           System.out.println(e.getMessage());
-
+           System.out.println("Einen error hast occurred" + e.toString());
         }
     }
 
@@ -132,7 +165,7 @@ public class SpreadsheetParser {
      * @param pmid numerical part of pubmed ID only
      * @param assocDate date association was made originally (not date this computational one was formed)
      */
-    private void createOBANAssociation(OWLOntologyManager manager, OWLOntology ontology, OWLDataFactory factory, String subject, String object, String pmid, String assocDate){
+    private void createOBANAssociation(OWLOntologyManager manager, OWLOntology ontology, OWLDataFactory factory, String subject, String object, String pmid, String assocDate, String sourceDB){
 
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
@@ -146,9 +179,9 @@ public class SpreadsheetParser {
         String assocHash = HashingIdGenerator.generateHashEncodedID(Math.random()+subject+object);
         String provHash = HashingIdGenerator.generateHashEncodedID(Math.random()+subject+object);
         //create IRI for association instance
-        String assocString = new StringBuilder().append("http://purl.obolibrary.org/obo/").append(assocHash).toString();
+        String assocString = new StringBuilder().append("http://purl.obolibrary.org/cttv/").append(assocHash).toString();
         IRI assocIRI = IRI.create(assocString);
-        String provString = new StringBuilder().append("http://purl.obolibrary.org/obo/").append(provHash).toString();
+        String provString = new StringBuilder().append("http://purl.obolibrary.org/cttv/").append(provHash).toString();
         IRI provIRI = IRI.create(provString);
 
         //mint classes
@@ -210,16 +243,29 @@ public class SpreadsheetParser {
         }
 
 
-
-        /*
         if(assocDate != null){
-            System.out.println("go assocdate");
             //mint datatype properties
             OWLDataProperty hasOriginCreatedDate = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/date_association_created"));
 
+            //make assertion
+            OWLDataPropertyAssertionAxiom assocDateAssertion = factory.
+                    getOWLDataPropertyAssertionAxiom(hasOriginCreatedDate, provenanceIndividual, assocDate);
+            manager.addAxiom(ontology, assocDateAssertion);
 
         }
-        */
+
+        if(sourceDB != null){
+            //mint datatype properties
+            OWLDataProperty hasSourceDB = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/has_source_db"));
+
+            //make assertion
+            OWLDataPropertyAssertionAxiom sourceDBAssertion = factory.
+                    getOWLDataPropertyAssertionAxiom(hasSourceDB, provenanceIndividual, sourceDB);
+            manager.addAxiom(ontology, sourceDBAssertion);
+        }
+
+
+
 
         System.out.println("Axiom added");
 
