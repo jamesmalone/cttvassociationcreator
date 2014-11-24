@@ -106,9 +106,9 @@ public class SpreadsheetParser {
                         String sourceDB = null;
 
                         //get subject and object
-                        String subject = split[subjectLocation];
+                        String subject = split[subjectLocation].replaceAll("\\s","");
                         System.out.println("Subject: " + subject);
-                        String object = split[objectLocation];
+                        String object = split[objectLocation].replaceAll("\\s","");
                         System.out.println("Object: " + object);
 
                         if (subject == "" || object == "") {
@@ -176,8 +176,8 @@ public class SpreadsheetParser {
         IRI subjectIRI = IRI.create(subject);
         IRI objectIRI = IRI.create(object);
         //generate hash for association & provenance URI fragment
-        String assocHash = HashingIdGenerator.generateHashEncodedID(Math.random()+subject+object);
-        String provHash = HashingIdGenerator.generateHashEncodedID(Math.random()+subject+object);
+        String assocHash = HashingIdGenerator.generateHashEncodedID(subject+object+sourceDB);
+        String provHash = HashingIdGenerator.generateHashEncodedID(subject+object+assocHash);
         //create IRI for association instance
         String assocString = new StringBuilder().append("http://purl.obolibrary.org/cttv/").append(assocHash).toString();
         IRI assocIRI = IRI.create(assocString);
@@ -245,7 +245,7 @@ public class SpreadsheetParser {
 
         if(assocDate != null){
             //mint datatype properties
-            OWLDataProperty hasOriginCreatedDate = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/date_association_created"));
+            OWLDataProperty hasOriginCreatedDate = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/date_orgin_created"));
 
             //make assertion
             OWLDataPropertyAssertionAxiom assocDateAssertion = factory.
