@@ -31,6 +31,7 @@ public class SpreadsheetParser {
         int pmidLocation = -1; //location of pubmed id column (optional)
         int dateLocation = -1; //location of date when association was made (optional)
         int sourceDBLocation = -1; //location of source of association (optional)
+        int freqLocation = -1; //location of frequeny info (optional)
 
 
 
@@ -71,6 +72,11 @@ public class SpreadsheetParser {
                     System.out.println("Found source db id element  "+ i);
                     sourceDBLocation = i;
                 }
+                //frequency id
+                else if (splitFirstLine[i].toString().toLowerCase().matches("frequency")){
+                    System.out.println("Found frequency id element  "+ i);
+                    freqLocation = i;
+                }
 
             }
 
@@ -104,6 +110,7 @@ public class SpreadsheetParser {
                         String pmid = null;
                         String assocDate = null;
                         String sourceDB = null;
+                        String freq = null;
 
                         //get subject and object
                         String subject = split[subjectLocation].replaceAll("\\s","");
@@ -126,6 +133,9 @@ public class SpreadsheetParser {
                             if (sourceDBLocation != -1) {
                                 sourceDB = split[sourceDBLocation];
                             }
+                            if (freqLocation != -1) {
+                                freq = split[freqLocation];
+                            }
 
                             //String object = new StringBuilder().append(split[objectLocation]).toString();
 
@@ -133,7 +143,7 @@ public class SpreadsheetParser {
                             OWLDataFactory factory = manager.getOWLDataFactory();
 
                             //mint subject and object assertions
-                            this.createOBANAssociation(manager, ontology, factory, subject, object, pmid, assocDate, sourceDB);
+                            this.createOBANAssociation(manager, ontology, factory, subject, object, pmid, assocDate, sourceDB, freq);
                         }
                     }
                     catch(Exception e){
@@ -165,7 +175,7 @@ public class SpreadsheetParser {
      * @param pmid numerical part of pubmed ID only
      * @param assocDate date association was made originally (not date this computational one was formed)
      */
-    private void createOBANAssociation(OWLOntologyManager manager, OWLOntology ontology, OWLDataFactory factory, String subject, String object, String pmid, String assocDate, String sourceDB){
+    private void createOBANAssociation(OWLOntologyManager manager, OWLOntology ontology, OWLDataFactory factory, String subject, String object, String pmid, String assocDate, String sourceDB, String freq){
 
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
@@ -264,8 +274,16 @@ public class SpreadsheetParser {
             manager.addAxiom(ontology, sourceDBAssertion);
         }
 
+        if(freq != null){
+            //mint datatype properties
+            OWLDataProperty hasFreq = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/has_frequency"));
 
+            //make assertion
+            OWLDataPropertyAssertionAxiom freqAssertion = factory.
+                    getOWLDataPropertyAssertionAxiom(hasFreq, provenanceIndividual, freq);
+            manager.addAxiom(ontology, freqAssertion);
 
+        }
 
         System.out.println("Axiom added");
 
