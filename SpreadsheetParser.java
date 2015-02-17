@@ -118,23 +118,29 @@ public class SpreadsheetParser {
                         String object = split[objectLocation].replaceAll("\\s","");
                         System.out.println("Object: " + object);
 
-                        if (subject == "" || object == "") {
+                        if (subject.isEmpty() || object.isEmpty()) {
 
                             System.out.println("Ingoring line " + i + " as no subject & object");
                         } else {
                             System.out.println("Adding axiom, row:  " + i);
 
-                            if (pmidLocation != -1) {
-                                pmid = split[pmidLocation];
-                            }
-                            if (dateLocation != -1) {
+                            System.out.println("size line split up " + split.length);
+
+                            if (dateLocation != -1 && dateLocation < split.length) {
+                                System.out.println("date " + split[dateLocation]);
                                 assocDate = split[dateLocation];
                             }
-                            if (sourceDBLocation != -1) {
+                            if (sourceDBLocation != -1 && sourceDBLocation < split.length) {
+                                System.out.println("source " + split[sourceDBLocation]);
                                 sourceDB = split[sourceDBLocation];
                             }
-                            if (freqLocation != -1) {
+                            if (freqLocation != -1 && freqLocation < split.length) {
                                 freq = split[freqLocation];
+                            }
+                            if (pmidLocation != -1 && pmidLocation < split.length) {
+                                System.out.println("pmid location " + pmidLocation);
+                                System.out.println("pmid " + split[pmidLocation]);
+                                pmid = split[pmidLocation];
                             }
 
                             //String object = new StringBuilder().append(split[objectLocation]).toString();
@@ -147,7 +153,7 @@ public class SpreadsheetParser {
                         }
                     }
                     catch(Exception e){
-                        System.out.println("A error has occurred reading a line from file " + e.toString());
+                        System.out.println("An error has occurred reading a line from file " + e.toString());
                     }
 
                 }
