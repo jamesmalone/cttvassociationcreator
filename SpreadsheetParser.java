@@ -242,7 +242,8 @@ public class SpreadsheetParser {
         manager.addAxiom(ontology, evidenceAssertion);
 
 
-        if(pmid != null){
+        System.out.println("pmid empty?: " + pmid.isEmpty() + " pmid val " + pmid);
+        if(pmid != null && !pmid.isEmpty()){
             //mint datatype properties
             OWLDataProperty hasPubmedID = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/has_pubmed_id"));
 
@@ -253,7 +254,7 @@ public class SpreadsheetParser {
         }
 
 
-        if(assocDate != null){
+        if(assocDate != null && !assocDate.isEmpty()){
             //mint datatype properties
             OWLDataProperty hasOriginCreatedDate = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/date_orgin_created"));
 
@@ -264,7 +265,7 @@ public class SpreadsheetParser {
 
         }
 
-        if(sourceDB != null){
+        if(sourceDB != null && !sourceDB.isEmpty()){
             //mint datatype properties
             OWLDataProperty hasSourceDB = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/has_source_db"));
 
@@ -274,7 +275,8 @@ public class SpreadsheetParser {
             manager.addAxiom(ontology, sourceDBAssertion);
         }
 
-        if(freq != null){
+
+        if(freq != null && !freq.isEmpty()){
             //mint datatype properties
             OWLDataProperty hasFreq = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/has_frequency"));
 
