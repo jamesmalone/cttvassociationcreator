@@ -242,7 +242,6 @@ public class SpreadsheetParser {
         manager.addAxiom(ontology, evidenceAssertion);
 
 
-        System.out.println("pmid empty?: " + pmid.isEmpty() + " pmid val " + pmid);
         if(pmid != null && !pmid.isEmpty()){
             //mint datatype properties
             OWLDataProperty hasPubmedID = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/has_pubmed_id"));
