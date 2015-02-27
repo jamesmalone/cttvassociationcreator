@@ -124,8 +124,6 @@ public class SpreadsheetParser {
                         } else {
                             System.out.println("Adding axiom, row:  " + i);
 
-                            System.out.println("size line split up " + split.length);
-
                             if (dateLocation != -1 && dateLocation < split.length) {
                                 System.out.println("date " + split[dateLocation]);
                                 assocDate = split[dateLocation];
@@ -138,7 +136,6 @@ public class SpreadsheetParser {
                                 freq = split[freqLocation];
                             }
                             if (pmidLocation != -1 && pmidLocation < split.length) {
-                                System.out.println("pmid location " + pmidLocation);
                                 System.out.println("pmid " + split[pmidLocation]);
                                 pmid = split[pmidLocation];
                             }
