@@ -20,7 +20,10 @@ public class Driver {
 
         SpreadsheetParser parser = new SpreadsheetParser();
         //input file, output file
-        parser.parseFile("/Users/malone/Dropbox/CTTV/OBAN association work/immune/immune_oban_format.txt", "file:/Users/malone/Dropbox/CTTV/OBAN%20association%20work/immune/immune_associations_17_feb.owl");
+
+        parser.parseFile("/Users/malone/Dropbox/CTTV/OBAN association work/immune/immune_oban_format.txt", "file:/Users/malone/meow.owl");
+
+        //parser.parseFile("/Users/malone/Dropbox/CTTV/OBAN association work/immune/immune_oban_format.txt", "file:/Users/malone/Dropbox/CTTV/OBAN%20association%20work/immune/immune_associations_17_feb.owl");
 
         //parser.parseFile("/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/curated_OBAN_IBD_merged.txt", "file:/Users/malone/Dropbox/CTTV/OBAN%20association%20work/ibd%20work/Clinician%20IBD%20feedback/ibd_associations_20_feb.owl");
 

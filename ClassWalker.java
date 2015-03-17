@@ -80,7 +80,6 @@ public class ClassWalker {
 
 
 
-
             //get class
             OWLClass efoOntology = manager.getOWLDataFactory().getOWLClass(classIRI);
 
