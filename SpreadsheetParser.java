@@ -3,6 +3,7 @@ package obanminter;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import java.io.FileReader;
 import java.text.DateFormat;
@@ -286,6 +287,14 @@ public class SpreadsheetParser {
             OWLClassAssertionAxiom pmidTypeAssertion = factory.getOWLClassAssertionAxiom(edampmidclass, pmidIndividual);
             manager.addAxiom(ontology, pmidTypeAssertion);
 
+            OWLDataFactory df = manager.getOWLDataFactory();
+            OWLAnnotation labelAnno = df.getOWLAnnotation(df.getRDFSLabel(),
+                    df.getOWLLiteral("pubmed ID", "en"));
+            OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(edampmidclass.getIRI(),
+                    labelAnno);
+            // Add the axiom to the ontology
+            manager.applyChange(new AddAxiom(ontology, ax));
+
             //mint datatype properties
             OWLObjectProperty hasPubmedID = factory.getOWLObjectProperty(IRI.create("http://purl.org/oban/has_pubmed_id"));
 
@@ -317,6 +326,25 @@ public class SpreadsheetParser {
             manager.addAxiom(ontology, sourceDBAssertion);
         }
 
+
+        if(creatorName != null && !creatorName.isEmpty()){
+            //create instance for person name
+            OWLNamedIndividual personIndividual = factory.getOWLNamedIndividual(IRI.create("http://purl.org/oban/" + HashingIdGenerator.generateHashEncodedID(creatorName)));
+            //mint uri for creator
+            OWLClass foafPersonClass = factory.getOWLClass(IRI.create("http://xmlns.com/foaf/spec/#term_Person"));
+            //mint datatype properties
+            OWLObjectProperty hasSourceDB = factory.getOWLObjectProperty(IRI.create("http://purl.org/oban/has_source_db"));
+
+            OWLClassAssertionAxiom foafPersonTypeAssertion = factory.getOWLClassAssertionAxiom(foafPersonClass, personIndividual);
+            manager.addAxiom(ontology, foafPersonTypeAssertion);
+
+
+            //make assertion
+            OWLObjectPropertyAssertionAxiom creatorAssertion = factory.
+                    getOWLObjectPropertyAssertionAxiom(hasSourceDB, provenanceIndividual, personIndividual);
+            manager.addAxiom(ontology, creatorAssertion);
+
+        }
 
         if(freq != null && !freq.isEmpty()){
             //mint datatype properties
