@@ -34,7 +34,7 @@ public class Driver {
 //"file:/Users/malone/Dropbox/CTTV/text mining work/ibd work/Jatin IBD feedback/ibd_associations_27_oct.owl"
 
         MergeOntologies merger = new MergeOntologies();
-        merger.mergeOntologies("/Users/malone/output.owl", "/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_OBAN_SG.txt", "/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_OBAN_Jatin.txt");
+        merger.mergeOntologies("/Users/malone/output2.owl", "/Users/malone/IBD_Jatin.owl", "/Users/malone/IBD_SG.owl", "/Users/malone/IBD_MLW.owl");
 
 
     }
