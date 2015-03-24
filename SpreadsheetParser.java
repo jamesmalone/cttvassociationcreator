@@ -344,6 +344,17 @@ public class SpreadsheetParser {
                     getOWLObjectPropertyAssertionAxiom(hasSourceDB, provenanceIndividual, personIndividual);
             manager.addAxiom(ontology, creatorAssertion);
 
+
+            //add name string as a label annotation on this individual
+            OWLDataFactory df = manager.getOWLDataFactory();
+            OWLAnnotation labelAnno = df.getOWLAnnotation(df.getRDFSLabel(),
+                    df.getOWLLiteral(creatorName, "en"));
+            OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(personIndividual.getIRI(),
+                    labelAnno);
+            // Add the axiom to the ontology
+            manager.applyChange(new AddAxiom(ontology, ax));
+
+
         }
 
         if(freq != null && !freq.isEmpty()){
