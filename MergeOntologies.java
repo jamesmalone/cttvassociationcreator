@@ -8,6 +8,7 @@ import org.semanticweb.owlapi.util.OWLOntologyURIChanger;
 
 import java.io.*;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -50,18 +51,18 @@ public class MergeOntologies {
                     IRI newiri = IRI.create(iri.toString()+i);
 
                     OWLOntologyURIChanger changer = new OWLOntologyURIChanger(man);
-                    changer.getChanges(o, newiri);
-
+                    List<OWLOntologyChange> changes = changer.getChanges(o, newiri);
+                    man.applyChanges(changes);
+                    System.out.println("new iri " + o.getOntologyID().getOntologyIRI());
                 }
                 i++;
-
             }
 
 
             OWLOntologyMerger merger = new OWLOntologyMerger(man);
 
             //merged ontology
-            OWLOntology merged = man.createOntology(mergedOntologyIRI);
+            OWLOntology merged = null;// man.createOntology(mergedOntologyIRI);
             merged = merger.createMergedOntology(man, mergedOntologyIRI);
 
             //create location to save ontology to
