@@ -18,11 +18,10 @@ public class MergeOntologies {
 
 
     /**
-     * This example shows how to merge to ontologies (by simply combining axioms
-     * from one ontology into another ontology).
+     * Merge multiple ontologies such as multiple OBAN OWL files into one
+     * @param outputLocation path to the file to save single merged ontology to
+     * @param ontologyLocations one or more paths to the ontology files which are to be merged into one
      *
-     * @throws OWLOntologyCreationException
-     * @throws OWLOntologyStorageException
      */
     public void mergeOntologies(String outputLocation, String ... ontologyLocations) {
         try{

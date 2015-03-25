@@ -16,8 +16,15 @@ import java.util.Scanner;
 
 /**
  * Created by malone on 30/09/2014.
+ * Modified 25/03/2015
  *
  * Class walks through rows in a spreadsheet and mints OBAN associations
+ * Input file should be a tab delimited file with first row column header of
+ * subject and object URIs for associations with extra optionals of form:
+ * subject_uri  object_uri  pmid    date    sourcedb    frequency   creator_name
+ *
+ *
+ *
  */
 
 
@@ -25,10 +32,12 @@ public class SpreadsheetParser {
 
     /**
      * Method to parse tab delimited file
-     * Input file is expected to be tab delimited with column headers (and order):
-     * subject  object  PMID
+     * Input file is expected to be tab delimited with column headers minimally including
+     * subject and object for associations with extra optionals of form:
+     * subject_uri  object_uri  pmid    date    sourcedb    frequency   creator_name
      *
-     * @param fileLocation
+     * @param fileLocation path to the tab delimited input file to be parsed into OBAN associations
+     * @param outputPath path to save the output OBAN file
      */
     public void parseFile(String fileLocation, String outputPath) {
 
@@ -183,6 +192,9 @@ public class SpreadsheetParser {
      * @param object string containing uri
      * @param pmid numerical part of pubmed ID only
      * @param assocDate date association was made originally (not date this computational one was formed)
+     * @param sourceDB if the provenance as from a database then name of database
+     * @param freq frequency of the assocation as a string e.g. very frequent
+     * @param creatorName name or other identifier of the person that created the association if source was a person
      */
     private void createOBANAssociation(OWLOntologyManager manager, OWLOntology ontology, OWLDataFactory factory, String subject, String object, String pmid, String assocDate, String sourceDB, String freq, String creatorName){
 
@@ -308,7 +320,7 @@ public class SpreadsheetParser {
             manager.addAxiom(ontology, assocDateAssertion);
         }
 
-
+        //add the source database if it exists
         if(sourceDB != null && !sourceDB.isEmpty()){
             //mint datatype properties
             OWLDataProperty hasSourceDB = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/has_source_db"));
@@ -319,7 +331,7 @@ public class SpreadsheetParser {
             manager.addAxiom(ontology, sourceDBAssertion);
         }
 
-
+        //add individual name if the source was a person - can be string or an ID such as ORCID
         if(creatorName != null && !creatorName.isEmpty()){
             //create instance for person name
             OWLNamedIndividual personIndividual = factory.getOWLNamedIndividual(IRI.create("http://purl.org/oban/" + HashingIdGenerator.generateHashEncodedID(creatorName)));
