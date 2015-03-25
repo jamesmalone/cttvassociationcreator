@@ -20,21 +20,14 @@ public class Driver {
 
         SpreadsheetParser parser = new SpreadsheetParser();
         //input file, output file
+        parser.parseFile("/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_OBAN_Jatin.txt", "/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_Jatin_associations.owl");
 
-        //parser.parseFile("/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_OBAN_Jatin.txt", "file:/Users/malone/IBD_Jatin.owl");
+        parser.parseFile("/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_OBAN_SG.txt", "/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_SG_associations.owl");
 
-        //parser.parseFile("/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_OBAN_SG.txt", "file:/Users/malone/Dropbox/CTTV/OBAN%20association%20work/immune/immune_associations_17_feb.owl");
-
-        //parser.parseFile("/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/curated_OBAN_IBD_merged.txt", "file:/Users/malone/Dropbox/CTTV/OBAN%20association%20work/ibd%20work/Clinician%20IBD%20feedback/ibd_associations_20_feb.owl");
-
-        //parser.parseFile("/Users/malone/Dropbox/CTTV/common to rare/hpo_ORDO_141104_tab.txt", "file:/Users/malone/Dropbox/CTTV/common%20to%20rare/ordo_hpo_mappings.owl");
-
-        //parser.parseFile("/Users/malone/Dropbox/CTTV/common to rare/hpo_ORDO_17Feb15update.txt", "file:/Users/malone/Dropbox/CTTV/common%20to%20rare/OBAN%20rdf/ordo_hpo_mappings_17_feb_15.owl");
-
-//"file:/Users/malone/Dropbox/CTTV/text mining work/ibd work/Jatin IBD feedback/ibd_associations_27_oct.owl"
+        parser.parseFile("/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_OBAN_MLW.txt", "/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_MLW_associations.owl");
 
         MergeOntologies merger = new MergeOntologies();
-        merger.mergeOntologies("/Users/malone/output2.owl", "/Users/malone/IBD_Jatin.owl", "/Users/malone/IBD_SG.owl", "/Users/malone/IBD_MLW.owl");
+        merger.mergeOntologies("/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/ibd_2_pheno_associations.owl", "/Users/malone/IBD_Jatin.owl", "/Users/malone/IBD_SG.owl", "/Users/malone/IBD_MLW.owl");
 
 
     }

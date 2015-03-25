@@ -1,10 +1,13 @@
 package obanminter;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -25,9 +28,9 @@ public class SpreadsheetParser {
      * Input file is expected to be tab delimited with column headers (and order):
      * subject  object  PMID
      *
-     * @param filelocation
+     * @param fileLocation
      */
-    public void parseFile(String filelocation, String outputpath) {
+    public void parseFile(String fileLocation, String outputPath) {
 
         int subjectLocation = -1; //location of subject ontology uri (required)
         int objectLocation = -1; //location of object ontology uri (required)
@@ -40,7 +43,7 @@ public class SpreadsheetParser {
 
 
         try {
-            Scanner sc = new Scanner(new FileReader(filelocation));
+            Scanner sc = new Scanner(new FileReader(fileLocation));
 
             //get first line
             String firstLine = sc.nextLine();
@@ -49,7 +52,6 @@ public class SpreadsheetParser {
             for(int i=0; i<splitFirstLine.length; i++) {
 
                 //subject uri
-                System.out.println("Testing element "+ i + " " + splitFirstLine[i]);
                 if (splitFirstLine[i].toString().toLowerCase().matches("subject_uri")) {
                     subjectLocation = i;
                     System.out.println("Found subject element  "+ i);
@@ -83,7 +85,7 @@ public class SpreadsheetParser {
                 }
                 //person name id
                 else if (splitFirstLine[i].toString().toLowerCase().matches("creator_name")){
-                    System.out.println("Found frequency id element  "+ i);
+                    System.out.println("Found name id element  "+ i);
                     creatorNameLocation = i;
                 }
 
@@ -100,9 +102,6 @@ public class SpreadsheetParser {
                 //prepare ontology to save RDF into
                 OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
                 IRI ontologyIRI = IRI.create("http://cttv.org/associations/");
-                IRI documentIRI = IRI.create(outputpath);
-                SimpleIRIMapper mapper = new SimpleIRIMapper(ontologyIRI, documentIRI);
-                manager.addIRIMapper(mapper);
                 OWLOntology ontology = manager.createOntology(ontologyIRI);
 
                 int i = 0;
@@ -112,7 +111,6 @@ public class SpreadsheetParser {
 
                     try {
                         i++;
-                        System.out.println("Line:" + i);
 
                         String line = (sc.nextLine());
                         String[] split = line.split("\t");
@@ -124,29 +122,23 @@ public class SpreadsheetParser {
 
                         //get subject and object
                         String subject = split[subjectLocation].replaceAll("\\s","");
-                        System.out.println("Subject: " + subject);
                         String object = split[objectLocation].replaceAll("\\s","");
-                        System.out.println("Object: " + object);
 
                         if (subject.isEmpty() || object.isEmpty()) {
 
                             System.out.println("Ingoring line " + i + " as no subject & object");
                         } else {
-                            System.out.println("Adding axiom, row:  " + i);
 
                             if (dateLocation != -1 && dateLocation < split.length) {
-                                System.out.println("date " + split[dateLocation]);
                                 assocDate = split[dateLocation];
                             }
                             if (sourceDBLocation != -1 && sourceDBLocation < split.length) {
-                                System.out.println("source " + split[sourceDBLocation]);
                                 sourceDB = split[sourceDBLocation];
                             }
                             if (freqLocation != -1 && freqLocation < split.length) {
                                 freq = split[freqLocation];
                             }
                             if (pmidLocation != -1 && pmidLocation < split.length) {
-                                System.out.println("pmid " + split[pmidLocation]);
                                 pmid = split[pmidLocation];
                             }
                             if (creatorNameLocation!= -1 && creatorNameLocation < split.length) {
@@ -168,11 +160,12 @@ public class SpreadsheetParser {
 
                 }
 
-
-                //save ontology
-                manager.saveOntology(ontology);
+                //create location to save ontology to
+                File outputFile = new File(outputPath);
+                FileOutputStream fs = new FileOutputStream(outputFile);
+                //save ontology to file as rdf/xml
+                manager.saveOntology(ontology, new RDFXMLOntologyFormat(), fs);
                 System.out.println("ontology saved");
-
             }
         }
         catch(Exception e){
@@ -366,8 +359,6 @@ public class SpreadsheetParser {
                     getOWLDataPropertyAssertionAxiom(hasFreq, provenanceIndividual, freq);
             manager.addAxiom(ontology, freqAssertion);
         }
-
-        System.out.println("Axiom added");
 
     }
 

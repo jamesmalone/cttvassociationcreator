@@ -53,7 +53,6 @@ public class MergeOntologies {
                     OWLOntologyURIChanger changer = new OWLOntologyURIChanger(man);
                     List<OWLOntologyChange> changes = changer.getChanges(o, newiri);
                     man.applyChanges(changes);
-                    System.out.println("new iri " + o.getOntologyID().getOntologyIRI());
                 }
                 i++;
             }
