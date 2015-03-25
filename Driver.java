@@ -20,6 +20,9 @@ public class Driver {
 
         SpreadsheetParser parser = new SpreadsheetParser();
         //input file, output file
+        parser.parseFile("/Users/malone/Dropbox/CTTV/common to rare/hpo_ORDO_25Mar15update.txt", "/Users/malone/Dropbox/CTTV/common to rare/OBAN rdf/ordo_hpo_OBAN_25_mar_15.owl");
+
+
         /*
         parser.parseFile("/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_OBAN_Jatin.txt", "/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_Jatin_associations.owl");
 
@@ -27,13 +30,13 @@ public class Driver {
 
         parser.parseFile("/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_OBAN_MLW.txt", "/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_MLW_associations.owl");
 
-*/
+
         MergeOntologies merger = new MergeOntologies();
         merger.mergeOntologies("http://cttv.org/associations/", "/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/ibd_2_pheno_associations.owl", "/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_MLW_associations.owl",
                 "/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_SG_associations.owl",
                 "/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_Jatin_associations.owl");
 
-
+    */
     }
 
 

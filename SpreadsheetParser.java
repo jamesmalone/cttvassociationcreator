@@ -322,13 +322,33 @@ public class SpreadsheetParser {
 
         //add the source database if it exists
         if(sourceDB != null && !sourceDB.isEmpty()){
-            //mint datatype properties
-            OWLDataProperty hasSourceDB = factory.getOWLDataProperty(IRI.create("http://purl.org/oban/has_source_db"));
 
-            //make assertion
-            OWLDataPropertyAssertionAxiom sourceDBAssertion = factory.
-                    getOWLDataPropertyAssertionAxiom(hasSourceDB, provenanceIndividual, sourceDB);
-            manager.addAxiom(ontology, sourceDBAssertion);
+            //create instance for source database from the uri
+            OWLNamedIndividual sourceDBIndividual = factory.getOWLNamedIndividual(IRI.create(sourceDB));
+            //mint uri for creator
+            OWLClass miriamIdentifierClass = factory.getOWLClass(IRI.create("http://edamontology.org/data_1164"));
+            //mint datatype properties
+            OWLObjectProperty hasSourceDB = factory.getOWLObjectProperty(IRI.create("http://purl.org/oban/has_source"));
+            //make individual db a type of the EDAM Miriam class
+            OWLClassAssertionAxiom miriamTypeAssertion = factory.getOWLClassAssertionAxiom(miriamIdentifierClass, sourceDBIndividual);
+            manager.addAxiom(ontology, miriamTypeAssertion);
+
+            //make assertion on provenance
+            OWLObjectPropertyAssertionAxiom sourceAssertion = factory.
+                    getOWLObjectPropertyAssertionAxiom(hasSourceDB, provenanceIndividual, sourceDBIndividual);
+            manager.addAxiom(ontology, sourceAssertion);
+
+            /*
+            //add string as a label annotation on this individual
+            OWLDataFactory df = manager.getOWLDataFactory();
+            OWLAnnotation labelAnno = df.getOWLAnnotation(df.getRDFSLabel(),
+                    df.getOWLLiteral(sourceDB, "en"));
+            OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(sourceDBIndividual.getIRI(),
+                    labelAnno);
+            // Add the axiom to the ontology
+            manager.applyChange(new AddAxiom(ontology, ax));
+            */
+
         }
 
         //add individual name if the source was a person - can be string or an ID such as ORCID
@@ -338,7 +358,7 @@ public class SpreadsheetParser {
             //mint uri for creator
             OWLClass foafPersonClass = factory.getOWLClass(IRI.create("http://xmlns.com/foaf/spec/#term_Person"));
             //mint datatype properties
-            OWLObjectProperty hasSourceDB = factory.getOWLObjectProperty(IRI.create("http://purl.org/oban/has_source_db"));
+            OWLObjectProperty hasSourceDB = factory.getOWLObjectProperty(IRI.create("http://purl.org/oban/has_source"));
 
             OWLClassAssertionAxiom foafPersonTypeAssertion = factory.getOWLClassAssertionAxiom(foafPersonClass, personIndividual);
             manager.addAxiom(ontology, foafPersonTypeAssertion);
@@ -358,7 +378,6 @@ public class SpreadsheetParser {
                     labelAnno);
             // Add the axiom to the ontology
             manager.applyChange(new AddAxiom(ontology, ax));
-
 
         }
 
