@@ -29,7 +29,7 @@ public class Driver {
 
 */
         MergeOntologies merger = new MergeOntologies();
-        merger.mergeOntologies("/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/ibd_2_pheno_associations.owl", "/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_MLW_associations.owl",
+        merger.mergeOntologies("http://cttv.org/associations/", "/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/ibd_2_pheno_associations.owl", "/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_MLW_associations.owl",
                 "/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_SG_associations.owl",
                 "/Users/malone/Dropbox/CTTV/OBAN association work/ibd work/Clinician IBD feedback/IBD_Jatin_associations.owl");
 

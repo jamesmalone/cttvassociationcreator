@@ -1,5 +1,6 @@
 package obanminter;
 
+import com.sun.prism.shader.Solid_ImagePattern_Loader;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.model.*;
@@ -19,16 +20,17 @@ public class MergeOntologies {
 
     /**
      * Merge multiple ontologies such as multiple OBAN OWL files into one
+     * @param ontologyIRI the IRI for the new, merged ontology
      * @param outputLocation path to the file to save single merged ontology to
      * @param ontologyLocations one or more paths to the ontology files which are to be merged into one
      *
      */
-    public void mergeOntologies(String outputLocation, String ... ontologyLocations) {
+    public void mergeOntologies(String ontologyIRI, String outputLocation, String ... ontologyLocations) {
         try{
 
             // specify the URI of the new ontology that will be created.
             IRI mergedOntologyIRI = IRI
-                    .create("http://purl.org/oban/merged.owl");
+                    .create(ontologyIRI);
 
             OWLOntologyManager man = OWLManager.createOWLOntologyManager();
 
@@ -68,6 +70,7 @@ public class MergeOntologies {
             FileOutputStream fs = new FileOutputStream(outputFile);
             //save ontology to file as rdf/xml
             man.saveOntology(merged, new RDFXMLOntologyFormat(), fs);
+            System.out.println("New merged ontology file saved.");
 
 
         }
